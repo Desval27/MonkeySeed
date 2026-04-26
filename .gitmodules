@@ -1,0 +1,3 @@
+[submodule "ChoirSATB"]
+	path = ChoirSATB
+	url = ./ChoirSATB/
