@@ -25,16 +25,6 @@ class EncoderMonitor
     {
     }
 
-    /** Initialises the ButtonMonitor.
-     * @param queueToAddEventsTo	The UiEventQueue to which events should be posted.
-     * @param backend				The backend that supplies the current state of each button.
-     * @param debounceTimeoutMs   	A event is posted to the queue if the button state doesn't change
-     * 								for `debounceTimeoutMs`. Can be 0 to disable debouncing.
-     * @param doubleClickTimeoutMs	The timeout for detecting double clicks.
-     * @param retriggerTimeoutMs	The timeout after which a button will be retriggered when held down.
-     *                              0 to disable retriggering.
-     * @param retriggerPeriodMs	    The speed with which a button will be retriggered when held down.
-     */
     void Init(UiEventQueue& queueToAddEventsTo,
               BackendType&  backend)
     {
@@ -44,6 +34,7 @@ class EncoderMonitor
         for(uint32_t i = 0; i < numEncoders; i++)
         {
             encoderActive_[i] = false;
+            encoderIncrements_[i] = 0;
         }
     }
 
@@ -71,8 +62,10 @@ class EncoderMonitor
             {
                 queue_->AddEncoderActivityChanged(id, true);
                 encoderActive_[id] = true;
+                encoderIncrements_[id] = 0;
             }
-            queue_->AddEncoderTurned(id, inc, numSteps);
+            encoderIncrements_[id] = encoderIncrements_[id] + inc;
+            queue_->AddEncoderTurned(id, encoderIncrements_[id], numSteps);
         }
         else
         {
@@ -80,6 +73,7 @@ class EncoderMonitor
             {
                 queue_->AddEncoderActivityChanged(id, false);
                 encoderActive_[id] = false;
+                encoderIncrements_[id] = 0;
             }
         }
     }
@@ -89,5 +83,6 @@ class EncoderMonitor
 
     UiEventQueue* queue_;
     BackendType*  backend_;
+    int32_t       encoderIncrements_[numEncoders];
     bool          encoderActive_[numEncoders];
 };

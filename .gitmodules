@@ -1,3 +1,6 @@
 [submodule "ChoirSATB"]
 	path = ChoirSATB
 	url = ./ChoirSATB/
+[submodule "SeedProtoTest"]
+	path = SeedProtoTest
+	url = ./SeedProtoTest/
