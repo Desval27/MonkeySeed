@@ -12,26 +12,55 @@
 #pragma once
 
 #include <array>
+#include <cstdint>
 
 #include <daisy_seed.h>
 #include <daisysp.h>
 
-#include <EncoderMonitor.h>
+#include "EncoderMonitor.h"
+#include "TurnOnlyEncoder.h"
 
-constexpr uint32_t UPDATE_RATE_MS = 60;
+constexpr uint32_t DISPLAY_UPDATE_RATE_MS = 60;
 constexpr uint32_t SCREEN_SAVER_TIMEOUT_MS = 5000;
-constexpr float CONTROL_UPDATE_RATE_HZ = 1000.f / (float)UPDATE_RATE_MS;
-constexpr float POT_SMOOTHING = 0.25f;
+constexpr float CONTROL_UPDATE_RATE_HZ = 1000.f;
+constexpr float POT_PRECISION = 1000.0f;
+// constexpr float POT_SMOOTHING = 1.0f;
 
-template <typename DisplayDriver, std::size_t ENCODER_COUNT = 4,
-          std::size_t BUTTON_COUNT = 4, std::size_t POT_COUNT = 4,
+  enum EncoderId {
+    ENCODER_1 = 0,
+    ENCODER_2 = 1,
+    ENCODER_3 = 2,
+    ENCODER_4 = 3,
+  };
+
+  enum ButtonId {
+    BUTTON_1 = 0,
+    BUTTON_2 = 1,
+    BUTTON_3 = 2,
+    BUTTON_4 = 3,
+    BUTTON_5 = 4,
+  };
+
+  enum PotId {
+    POT_1 = 0,
+    POT_2 = 1,
+    POT_3 = 2,
+    POT_4 = 3,
+  };
+
+template <typename DisplayDriver, 
+          std::size_t ENCODER_COUNT,
+          std::size_t BUTTON_COUNT, 
+          std::size_t POT_COUNT,
+          uint16_t MENU_ENCODER_ID = daisy::UiEventQueue::invalidEncoderId,
+          uint16_t OK_BUTTON_ID = daisy::UiEventQueue::invalidButtonId,
+          uint16_t CANCEL_BUTTON_ID = daisy::UiEventQueue::invalidButtonId,
           bool POTS_FLIPPED = false>
 class UIOverlord {
 public:
   struct EncoderConfig {
     Pin a;
     Pin b;
-    Pin click;
   };
 
   struct ButtonConfig {
@@ -42,7 +71,7 @@ public:
     Pin pin;
   };
 
-  UIOverlord() : lastRefreshMS_(0) {}
+  UIOverlord() : lastControlProcessMS_(0) {}
 
   void Init(float sample_rate, UiPage &startPage, daisy::AdcHandle *adc,
             const EncoderConfig encoderConfig[],
@@ -61,8 +90,7 @@ public:
     //
     if (ENCODER_COUNT > 0) {
       for (size_t i = 0; i < ENCODER_COUNT; i++) {
-        encoders_[i].Init(encoderConfig[i].a, encoderConfig[i].b,
-                          encoderConfig[i].click);
+        encoders_[i].Init(encoderConfig[i].a, encoderConfig[i].b);
       }
       encoderBackend_.encoders = encoders_.data();
       encoderMonitor_.Init(eventQueue_, encoderBackend_);
@@ -93,7 +121,7 @@ public:
 
       for (size_t i = 0; i < POT_COUNT; i++) {
         pots_[i].Init(adc->GetPtr(i), CONTROL_UPDATE_RATE_HZ, POTS_FLIPPED);
-        pots_[i].SetCoeff(POT_SMOOTHING);
+        // pots_[i].SetCoeff(POT_SMOOTHING);
         pots_[i].Process();
       }
 
@@ -103,15 +131,14 @@ public:
     }
 
     UI::SpecialControlIds specialControls;
-    // if(ENCODER_COUNT > 0)
-    //     specialControls.menuEncoderId = ENCODER_1;
-    // if(BUTTON_COUNT > 0)
-    //     specialControls.okBttnId = BUTTON_1;
+    specialControls.menuEncoderId = MENU_ENCODER_ID;
+    specialControls.okBttnId = OK_BUTTON_ID;
+    specialControls.cancelBttnId = CANCEL_BUTTON_ID;
 
     UiCanvasDescriptor oledCanvas;
     oledCanvas.id_ = 0;
     oledCanvas.handle_ = &display_;
-    oledCanvas.updateRateMs_ = UPDATE_RATE_MS;
+    oledCanvas.updateRateMs_ = DISPLAY_UPDATE_RATE_MS;
     oledCanvas.screenSaverTimeOut = SCREEN_SAVER_TIMEOUT_MS;
     oledCanvas.clearFunction_ = ClearCanvas;
     oledCanvas.flushFunction_ = FlushCanvas;
@@ -121,14 +148,12 @@ public:
     ui_.OpenPage(startPage);
   }
 
-  void Process() {
-    // Let's try not to spam things
+  void ProcessControls() {
     uint32_t nowMS = System::GetNow();
-    if ((nowMS - lastRefreshMS_) < UPDATE_RATE_MS)
+    if (nowMS == lastControlProcessMS_)
       return;
-    lastRefreshMS_ = nowMS;
+    lastControlProcessMS_ = nowMS;
 
-    // Debouce all controls
     for (size_t i = 0; i < ENCODER_COUNT; i++)
       encoders_[i].Debounce();
     for (size_t i = 0; i < BUTTON_COUNT; i++)
@@ -143,34 +168,19 @@ public:
       buttonMonitor_.Process();
     if (POT_COUNT > 0)
       potMonitor_.Process();
-
-    ui_.Process();
   }
 
-  enum EncoderId {
-    ENCODER_1 = 0,
-    ENCODER_2 = 1,
-    ENCODER_3 = 2,
-    ENCODER_4 = 3,
-  };
+  void ProcessUi() { ui_.Process(); }
 
-  enum ButtonId {
-    BUTTON_1 = 0,
-    BUTTON_2 = 1,
-    BUTTON_3 = 2,
-    BUTTON_4 = 3,
-  };
+  void Process() {
+    ProcessControls();
+    ProcessUi();
+  }
 
-  enum PotId {
-    POT_1 = 0,
-    POT_2 = 1,
-    POT_3 = 2,
-    POT_4 = 3,
-  };
 
 protected:
   struct EncoderBackend {
-    Encoder *encoders;
+    daisy::TurnOnlyEncoder *encoders;
     int32_t Increment(uint16_t encoderID) {
       return encoders[encoderID].Increment();
     }
@@ -187,7 +197,7 @@ protected:
     AnalogControl *pots;
     float GetPotValue(uint16_t potID) {
       // return pots[potID].GetRawFloat();
-      return pots[potID].Value();
+      return trunc(pots[potID].Value() * POT_PRECISION) / POT_PRECISION;
     }
   };
 
@@ -204,7 +214,7 @@ protected:
 private:
   UI ui_;
   UiEventQueue eventQueue_;
-  uint32_t lastRefreshMS_;
+  uint32_t lastControlProcessMS_;
 
   daisy::OledDisplay<DisplayDriver> display_;
 
@@ -219,7 +229,7 @@ private:
   PotMonitor<PotBackend, POT_COUNT> potMonitor_;
 
   // Control Instances
-  std::array<Encoder, ENCODER_COUNT> encoders_;
+  std::array<daisy::TurnOnlyEncoder, ENCODER_COUNT> encoders_;
   std::array<Switch, BUTTON_COUNT> buttons_;
   std::array<AnalogControl, POT_COUNT> pots_;
 };

@@ -21,40 +21,51 @@ class EncoderMonitor
   public:
     EncoderMonitor()
     : queue_(nullptr),
-      backend_(nullptr)
+      backend_(nullptr),
+      idleTimeoutMs_(0),
+      lastCallSysTime_(0)
     {
     }
 
     void Init(UiEventQueue& queueToAddEventsTo,
-              BackendType&  backend)
+              BackendType&  backend,
+              uint16_t      idleTimeoutMs = 250)
     {
         queue_              = &queueToAddEventsTo;
         backend_            = &backend;
+        idleTimeoutMs_      = idleTimeoutMs;
 
         for(uint32_t i = 0; i < numEncoders; i++)
         {
             encoderActive_[i] = false;
             encoderIncrements_[i] = 0;
+            idleTimeMs_[i] = 0;
         }
+
+        lastCallSysTime_ = System::GetNow();
     }
 
-    /** Checks the value of each button and generates messages for the UIEventQueue.
+    /** Checks the value of each encoder and generates messages for the UIEventQueue.
      *  Call this at regular intervals, ideally from your main() idle loop.
      */
     void Process()
     {
+        const auto now      = System::GetNow();
+        const auto timeDiff = now - lastCallSysTime_;
+        lastCallSysTime_    = now;
+
         for(uint32_t i = 0; i < numEncoders; i++)
-            ProcessEncoder(i, backend_->Increment(i));
+            ProcessEncoder(i, backend_->Increment(i), timeDiff);
     }
 
     /** Returns the BackendType that is used by the monitor. */
-    BackendType& GetBackend() { return backend_; }
+    BackendType& GetBackend() { return *backend_; }
 
     /** Returns the number of encoders that are monitored by this class. */
     uint16_t GetNumEncodersMonitored() const { return numEncoders; }
 
   private:
-    void ProcessEncoder(uint16_t id, int32_t inc)
+    void ProcessEncoder(uint16_t id, int32_t inc, uint32_t timeDiffMs)
     {
         if(inc != 0)
         {
@@ -64,6 +75,7 @@ class EncoderMonitor
                 encoderActive_[id] = true;
                 encoderIncrements_[id] = 0;
             }
+            idleTimeMs_[id] = 0;
             encoderIncrements_[id] = encoderIncrements_[id] + inc;
             queue_->AddEncoderTurned(id, encoderIncrements_[id], numSteps);
         }
@@ -71,9 +83,14 @@ class EncoderMonitor
         {
             if(encoderActive_[id])
             {
-                queue_->AddEncoderActivityChanged(id, false);
-                encoderActive_[id] = false;
-                encoderIncrements_[id] = 0;
+                idleTimeMs_[id] += timeDiffMs;
+                if(idleTimeMs_[id] >= idleTimeoutMs_)
+                {
+                    queue_->AddEncoderActivityChanged(id, false);
+                    encoderActive_[id] = false;
+                    encoderIncrements_[id] = 0;
+                    idleTimeMs_[id] = 0;
+                }
             }
         }
     }
@@ -83,6 +100,9 @@ class EncoderMonitor
 
     UiEventQueue* queue_;
     BackendType*  backend_;
+    uint16_t      idleTimeoutMs_;
     int32_t       encoderIncrements_[numEncoders];
+    uint16_t      idleTimeMs_[numEncoders];
     bool          encoderActive_[numEncoders];
+    uint32_t      lastCallSysTime_;
 };
