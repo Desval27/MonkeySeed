@@ -26,27 +26,48 @@ constexpr float CONTROL_UPDATE_RATE_HZ = 1000.f;
 constexpr float POT_PRECISION = 1000.0f;
 // constexpr float POT_SMOOTHING = 1.0f;
 
-  enum EncoderId {
+enum EncoderId
+{
     ENCODER_1 = 0,
-    ENCODER_2 = 1,
-    ENCODER_3 = 2,
-    ENCODER_4 = 3,
-  };
+    ENCODER_2,
+    ENCODER_3,
+    ENCODER_4,
+    ENCODER_5,
+    ENCODER_6,
+    ENCODER_7,
+    ENCODER_8,
+    ENCODER_9,
+    ENCODER_10,
+};
 
-  enum ButtonId {
+enum ButtonId
+{
     BUTTON_1 = 0,
-    BUTTON_2 = 1,
-    BUTTON_3 = 2,
-    BUTTON_4 = 3,
-    BUTTON_5 = 4,
-  };
+    BUTTON_2,
+    BUTTON_3,
+    BUTTON_4,
+    BUTTON_5,
+    BUTTON_6,
+    BUTTON_7,
+    BUTTON_8,
+    BUTTON_9,
+    BUTTON_10,
+};
 
-  enum PotId {
+enum PotId
+{
     POT_1 = 0,
-    POT_2 = 1,
-    POT_3 = 2,
-    POT_4 = 3,
-  };
+    POT_2,
+    POT_3,
+    POT_4,
+    POT_5,
+    POT_6,
+    POT_7,
+    POT_8,
+    POT_9,
+    POT_10,
+};
+
 
 template <typename DisplayDriver, 
           std::size_t ENCODER_COUNT,
