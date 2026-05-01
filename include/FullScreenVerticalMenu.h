@@ -90,10 +90,15 @@ class FullScreenVerticalMenu : public AbstractMenu
 
             FixedCapStr<20> itemText;
 
+            // This is just a WIP.  For now
+            // based on the item append some 
+            // sort of indicator text if possible
+            itemText.Append(items_[itemIdx].text);
+
             switch(items_[itemIdx].type)
             {
+                // Mostly just being sort of cheap for now.
                 case ItemType::checkboxItem:
-                    itemText.Append(items_[itemIdx].text);
                     if(*items_[itemIdx].asCheckboxItem.valueToModify)
                         itemText.Append("=YES");
                     else
@@ -101,19 +106,17 @@ class FullScreenVerticalMenu : public AbstractMenu
                     break;
                 case ItemType::openUiPageItem:
                     itemText.Append("...");
-                    itemText.Append(items_[itemIdx].text);
-                    itemText.Append("...");
                     break;
                 case ItemType::closeMenuItem:
-                    itemText.Append("X ");
-                    itemText.Append(items_[itemIdx].text);
                     itemText.Append(" X");
                     break;
-                default:
-                case ItemType::callbackFunctionItem:
                 case ItemType::valueItem:
+                    itemText.Append(' ');
+                    (*items_[itemIdx].asMappedValueItem.valueToModify).AppentToString(itemText);
+                    break;
+                default:
                 case ItemType::customItem:
-                    itemText.Append(items_[itemIdx].text);
+                case ItemType::callbackFunctionItem:
                     break;
             }
             if(isSelected)
