@@ -16,17 +16,17 @@
 
 struct ADEnvelope
 {
-    ADEnvelope()
+    ADEnvelope(float defAttack, float defDecay)
     : attack(0.0f,
              10.0f,
-             0.1f,
+             defAttack,
              daisy::MappedFloatValue::Mapping::lin,
              "s",
              2,
              false),
       decay(0.0f,
             10.0f,
-            0.1f,
+            defDecay,
             daisy::MappedFloatValue::Mapping::lin,
             "s",
             2,
@@ -43,31 +43,31 @@ struct ADEnvelope
 
 struct ADSREnvelope
 {
-    ADSREnvelope()
+    ADSREnvelope(float defAttack, float defDecay, float defSustain, float defRelease)
     : attack(0.0f,
              10.0f,
-             0.1f,
+             defAttack,
              daisy::MappedFloatValue::Mapping::lin,
              "s",
              2,
              false),
       decay(0.0f,
             10.0f,
-            0.1f,
+            defDecay,
             daisy::MappedFloatValue::Mapping::lin,
             "s",
             2,
             false),
       sustain(0.0f,
-              100.0f,
-              50.0f,
+              1.0f,
+              defSustain,
               daisy::MappedFloatValue::Mapping::lin,
-              "%",
-              0,
+              "",
+              2,
               false),
       release(0.0f,
               10.0f,
-              0.1f,
+              defRelease,
               daisy::MappedFloatValue::Mapping::lin,
               "s",
               2,

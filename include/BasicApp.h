@@ -12,6 +12,8 @@
 #pragma once
 
 #include <BasicVoice.h>
+#include <array>
+#include <utility>
 
 template <std::size_t VOICE_COUNT>
 struct BasicApp
@@ -21,5 +23,7 @@ struct BasicApp
 
     }
 
-    std::array<BasicVoice<ADSREnvelope>, VOICE_COUNT> voices{};
+    std::array<BasicVoice, VOICE_COUNT> voices;
+
+private:
 };
