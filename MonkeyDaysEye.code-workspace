@@ -3,5 +3,12 @@
 		{
 			"path": "."
 		}
-	]
+	],
+	"settings": {
+		"C_Cpp.codeAnalysis.clangTidy.enabled": true,
+		"C_Cpp.codeAnalysis.exclude": {
+			"${workspaceFolder}/../libDaisy/**": true,
+			"${workspaceFolder}/../DaisySP/**": true
+		}
+	}
 }

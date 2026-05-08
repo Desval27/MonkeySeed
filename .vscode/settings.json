@@ -1,9 +1,2 @@
 {
-    "C_Cpp.clang_format_fallbackStyle": "file",
-    "C_Cpp.clang_format_sortIncludes": true,
-    "C_Cpp.codeAnalysis.clangTidy.enabled": true,
-    "C_Cpp.default.compilerPath": "C:/msys64/mingw64/bin/g++.exe",
-    "C_Cpp.codeAnalysis.clangTidy.checks.disabled": [
-        "modernize-use-trailing-return-type"
-    ]
 }

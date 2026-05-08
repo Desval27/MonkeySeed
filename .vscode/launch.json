@@ -10,13 +10,13 @@
                 "target/stm32h7x.cfg"
             ],
             "name": "Cortex Debug",
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/TheMachine",
             "debuggerArgs": [
                 "-d",
                 "${workspaceRoot}"
             ],
             "device": "STM32H755IB6",
-            "executable": "./build/SeedProtoTest.elf",
+            "executable": "./build/TheMachine.elf",
             "interface": "swd",
             "preRestartCommands": [
                 "load",

@@ -22,76 +22,95 @@
 /// @brief
 struct BasicVoiceConfig
 {
-    BasicVoiceConfig()
+  BasicVoiceConfig()
     : volume(0.0f,
              1.0f,
              1.0f,
              daisy::MappedFloatValue::Mapping::lin,
              "",
              4,
-             false),
-      balance(-1.0f,
+             false)
+    , balance(-1.0f,
               1.0f,
               0.0f,
               daisy::MappedFloatValue::Mapping::lin,
               "",
               4,
               true)
-    {
-    }
+  {
+  }
 
-    daisy::MappedFloatValue volume;
-    daisy::MappedFloatValue balance;
+  daisy::MappedFloatValue volume;
+  daisy::MappedFloatValue balance;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief
 // template <std::size_t OSCILLATOR_COUNT = 1>
-template <typename CONFIG = BasicVoiceConfig>
+template<typename CONFIG = BasicVoiceConfig>
 class BasicVoice
 {
-  public:
-    CONFIG config_;
+public:
+  CONFIG config_;
 
-    ///////////////////////////////////////////////////////////////////////////
-    /// @brief
-    BasicVoice() : gate_(false), trigger_(false) {}
+  ///////////////////////////////////////////////////////////////////////////
+  /// @brief
+  BasicVoice()
+    : gate_(false)
+    , trigger_(false)
+  {
+  }
 
-    ///////////////////////////////////////////////////////////////////////////
-    /// @brief
-    /// @param sample_rate
-    virtual void Init(float sample_rate) {}
+  ///////////////////////////////////////////////////////////////////////////
+  /// @brief
+  /// @param sample_rate
+  virtual void Init(float sample_rate) {}
 
-    ///////////////////////////////////////////////////////////////////////////
-    /// @brief
-    /// @return
-    virtual std::tuple<float, float> Process() { return {0.0f, 0.0f}; }
+  ///////////////////////////////////////////////////////////////////////////
+  /// @brief
+  /// @return
+  virtual std::tuple<float, float> Process(bool trigger = false)
+  {
+    return { 0.0f, 0.0f };
+  }
 
-    ///////////////////////////////////////////////////////////////////////////
-    /// @brief
-    /// @param nowMS
-    virtual void Update(uint32_t nowMS) {}
+  ///////////////////////////////////////////////////////////////////////////
+  /// @brief
+  /// @param nowMS
+  virtual void Update(uint32_t nowMS) {}
 
-    ///////////////////////////////////////////////////////////////////////////
-    /// @brief
-    bool GetGate() const { return gate_; }
+  ///////////////////////////////////////////////////////////////////////////
+  /// @brief
+  bool GetGate() const { return gate_; }
 
-    ///////////////////////////////////////////////////////////////////////////
-    /// @brief
-    /// @param value
-    void SetGate(bool value) { gate_ = value; }
+  ///////////////////////////////////////////////////////////////////////////
+  /// @brief
+  /// @param value
+  void SetGate(bool value) { gate_ = value; }
 
-    ///////////////////////////////////////////////////////////////////////////
-    /// @brief 
-    /// @return 
-    bool GetTrigger() const { return trigger_; }
+  ///////////////////////////////////////////////////////////////////////////
+  /// @brief
+  /// @return
+  bool GetTrigger() const { return trigger_; }
 
-    ///////////////////////////////////////////////////////////////////////////
-    /// @brief 
-    /// @param value 
-    void SetTrigger(bool value) { trigger_ = value; }
+  ///////////////////////////////////////////////////////////////////////////
+  /// @brief
+  /// @param value
+  void SetTrigger(bool value) { trigger_ = value; }
 
-  private:
-    bool gate_;
-    bool trigger_;
+protected:
+  ///////////////////////////////////////////////////////////////////////////
+  /// @brief
+  /// @param sig
+  /// @return
+  std::tuple<float, float> balance_signal(float sig)
+  {
+    const float rCoeff = (config_.balance.Get() + 1.0F) / 2.0F;
+    const float lCoeff = 1.0F - rCoeff;
+    return { sig * lCoeff, sig * rCoeff };
+  }
+
+private:
+  bool gate_;
+  bool trigger_;
 };
