@@ -47,11 +47,11 @@ struct BasicVoiceConfig
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief
 // template <std::size_t OSCILLATOR_COUNT = 1>
-template<typename CONFIG = BasicVoiceConfig>
+template<typename VOICE_CONFIG = BasicVoiceConfig>
 class BasicVoice
 {
 public:
-  CONFIG config_;
+  VOICE_CONFIG config_;
 
   ///////////////////////////////////////////////////////////////////////////
   /// @brief
@@ -71,7 +71,7 @@ public:
   /// @return
   virtual std::tuple<float, float> Process(bool trigger = false)
   {
-    return { 0.0f, 0.0f };
+    return { 0.0F, 0.0F };
   }
 
   ///////////////////////////////////////////////////////////////////////////

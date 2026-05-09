@@ -13,7 +13,7 @@
 #pragma once
 
 #include <BasicVoice.h>
-//#include <analogbassdrum.h>
+// #include <analogbassdrum.h>
 #include <daisy.h>
 #include <daisysp.h>
 
@@ -24,10 +24,9 @@ struct DrumVoiceConfig : public BasicVoiceConfig
   {
   }
 
-  daisy::MappedFloatValue freq{ 1.0F,   12000.0F,
-                                56.0F, daisy::MappedFloatValue::Mapping::log,
-                                "Hz",   0,
-                                false };
+  daisy::MappedFloatValue freq{
+    1.0F, 12000.0F, 56.0F, daisy::MappedFloatValue::Mapping::log, "Hz", 0, false
+  };
 
   daisy::MappedFloatValue tone{
     0.0F, 1.0F, 0.5F, daisy::MappedFloatValue::Mapping::lin, "", 2, false

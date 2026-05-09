@@ -30,12 +30,12 @@ struct SynthVoiceConfig : public BasicVoiceConfig
                  0.0f,
                  daisy::MappedFloatValue::Mapping::lin,
                  "",
-                 4,
+                 2,
                  false)
-    , fltFreq(0.0f,
+    , fltFreq(30.0f,
               16000.0f,
               1000.0f,
-              daisy::MappedFloatValue::Mapping::lin,
+              daisy::MappedFloatValue::Mapping::log,
               "Hz",
               0,
               false)
@@ -44,15 +44,15 @@ struct SynthVoiceConfig : public BasicVoiceConfig
              0.0f,
              daisy::MappedFloatValue::Mapping::lin,
              "",
-             4,
+             2,
              false)
-    , fltEnvelope(0.2f, 0.5f, 0.50f, 0.2f)
-    , ampLevel(-1.0f,
+    , fltEnvelope(0.2f, 0.5f)
+    , ampLevel(0.0f,
                1.0f,
-               0.0f,
+               1.0f,
                daisy::MappedFloatValue::Mapping::lin,
                "",
-               4,
+               2,
                true)
     , ampEnvelope(0.1f, 0.2f, 0.60f, 0.5f)
   {
@@ -63,7 +63,7 @@ struct SynthVoiceConfig : public BasicVoiceConfig
   daisy::MappedFloatValue noiseLevel;
   daisy::MappedFloatValue fltFreq;
   daisy::MappedFloatValue fltRes;
-  ADSREnvelope fltEnvelope;
+  ADEnvelope fltEnvelope;
   daisy::MappedFloatValue ampLevel;
   ADSREnvelope ampEnvelope;
 };
@@ -92,10 +92,10 @@ public:
   {
     // Don't get anything from base class.
 
-    float sigF = fEnv_.Process(GetGate());
-    float sigA = aEnv_.Process(GetGate());
+    // float sigF = fEnv_.Process(GetGate());
+    // float sigA = aEnv_.Process(GetGate());
 
-    osc_.SetAmp(config_.volume);
+    osc_.SetAmp(config_.ampLevel);
 
     float oscSig = osc_.Process();
     float nseSig = nse_.Process();
@@ -119,15 +119,17 @@ public:
     flt_.SetFreq(config_.fltFreq);
     flt_.SetRes(config_.fltRes);
 
-    fEnv_.SetAttackTime(config_.fltEnvelope.attack);
-    fEnv_.SetDecayTime(config_.fltEnvelope.decay);
-    fEnv_.SetSustainLevel(config_.fltEnvelope.sustain);
-    fEnv_.SetReleaseTime(config_.fltEnvelope.release);
+    fEnv_.SetTime(daisysp::ADENV_SEG_ATTACK, config_.fltEnvelope.attack);
+    fEnv_.SetTime(daisysp::ADENV_SEG_DECAY, config_.fltEnvelope.decay);
+    // fEnv_.SetAttackTime(config_.fltEnvelope.attack);
+    // fEnv_.SetDecayTime(config_.fltEnvelope.decay);
+    // fEnv_.SetSustainLevel(config_.fltEnvelope.sustain);
+    // fEnv_.SetReleaseTime(config_.fltEnvelope.release);
 
-    aEnv_.SetAttackTime(config_.fltEnvelope.attack);
-    aEnv_.SetDecayTime(config_.fltEnvelope.decay);
-    aEnv_.SetSustainLevel(config_.fltEnvelope.sustain);
-    aEnv_.SetReleaseTime(config_.fltEnvelope.release);
+    aEnv_.SetAttackTime(config_.ampEnvelope.attack);
+    aEnv_.SetDecayTime(config_.ampEnvelope.decay);
+    aEnv_.SetSustainLevel(config_.ampEnvelope.sustain);
+    aEnv_.SetReleaseTime(config_.ampEnvelope.release);
   }
 
   ///////////////////////////////////////////////////////////////////////////
@@ -143,7 +145,7 @@ private:
   daisysp::Oscillator osc_;
   daisysp::WhiteNoise nse_;
   daisysp::Svf flt_;
-  daisysp::Adsr fEnv_;
+  daisysp::AdEnv fEnv_;
   daisysp::Adsr aEnv_;
 
   float freq_;

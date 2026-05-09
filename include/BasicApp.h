@@ -23,12 +23,15 @@ template<std::size_t MAX_DEGREES = Music::DEF_MAX_DEGREES,
 /// @brief
 class BasicApp
 {
-  using AppSetup = Music::Setup<MAX_DEGREES, SCALE_DEGREES>;
+  using MySetup = Music::Setup<MAX_DEGREES, SCALE_DEGREES>;
 
 private:
   const uint32_t COMPONENT_REFRESH_MS = 100;
 
 public:
+  MySetup setup;
+  Music::Gnome gnome;
+
   /////////////////////////////////////////////////////////////////////////////
   /// @brief Initializes app infrastructure including all voices based on the
   /// given sample rate
@@ -61,11 +64,11 @@ protected:
   /////////////////////////////////////////////////////////////////////////////
   /// @brief
   BasicApp()
-    : setup_(4,
-             Music::NoteValue::Quarter,
-             Music::TWELVE_TONE,
-             Music::OCTAVE_DOUBLE)
-    , gnome_(setup_.timeSignature, setup_.bars)
+    : setup(4,
+            Music::NoteValue::Quarter,
+            Music::TWELVE_TONE,
+            Music::OCTAVE_DOUBLE)
+    , gnome(setup.timeSignature, setup.bars)
     , lastRefreshMS_(0UL)
   {
   }
@@ -76,7 +79,5 @@ protected:
   }
 
 private:
-  AppSetup setup_;
-  Music::Gnome gnome_;
   uint32_t lastRefreshMS_{ 0 };
 };

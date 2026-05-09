@@ -5,10 +5,22 @@
 		}
 	],
 	"settings": {
-		"C_Cpp.codeAnalysis.clangTidy.enabled": true,
-		"C_Cpp.codeAnalysis.exclude": {
-			"${workspaceFolder}/../libDaisy/**": true,
-			"${workspaceFolder}/../DaisySP/**": true
-		}
+		"editor.formatOnSave": true,
+		"C_Cpp.default.cppStandard": "gnu++17",
+		"C_Cpp.default.cStandard": "gnu17",
+		"C_Cpp.default.intelliSenseMode": "linux-gcc-x64",
+		"C_Cpp.default.defines": [
+			"DEBUG"
+		],
+		"C_Cpp.default.includePath": [
+			"${workspaceFolder}/include",
+			"${workspaceFolder}/ChoirSATB/include",
+			"${workspaceFolder}/SeedProtoTest/include",
+			"${workspaceFolder}/TheMachine/include"
+		],
+		"C_Cpp.clang_format_fallbackStyle": "Mozilla",
+		"C_Cpp.clang_format_style": "file",
+		"C_Cpp.clang_format_sortIncludes": true,
+		"C_Cpp.codeAnalysis.clangTidy.enabled": true
 	}
 }
