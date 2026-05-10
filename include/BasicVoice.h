@@ -17,6 +17,7 @@
 #include <Envelopes.h>
 #include <monkey.hpp>
 #include <music/music.hpp>
+#include <music/music_config.hpp>
 
 ///////////////////////////////////////////////////////////////////////////
 /// @brief
@@ -28,7 +29,7 @@ struct BasicVoiceConfig
              1.0f,
              daisy::MappedFloatValue::Mapping::lin,
              "",
-             4,
+             2,
              false)
     , balance(-1.0f,
               1.0f,
@@ -47,16 +48,22 @@ struct BasicVoiceConfig
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief
 // template <std::size_t OSCILLATOR_COUNT = 1>
-template<typename VOICE_CONFIG = BasicVoiceConfig>
+template<std::size_t MAX_DEGREES = music::DEF_MAX_DEGREES,
+         std::size_t SCALE_DEGREES = music::DEF_SCALE_DEGREES,
+         typename VOICE_CONFIG = BasicVoiceConfig>
 class BasicVoice
 {
+  using MySetup = music::Setup<MAX_DEGREES, SCALE_DEGREES>;
+  using MyPitchEngine = music::PitchEngine<MAX_DEGREES, SCALE_DEGREES>;
+
 public:
   VOICE_CONFIG config_;
 
   ///////////////////////////////////////////////////////////////////////////
   /// @brief
   BasicVoice()
-    : gate_(false)
+    : base_frequency_(music::BASE_HZ)
+    , gate_(false)
     , trigger_(false)
   {
   }
@@ -64,7 +71,15 @@ public:
   ///////////////////////////////////////////////////////////////////////////
   /// @brief
   /// @param sample_rate
-  virtual void init(float sample_rate) {}
+  virtual void init(const MySetup& setup, int periodOffset, float sample_rate)
+  {
+    const float voiceRootHertz =
+      music::C4FREQ * setup.temperament.period_multiplier(periodOffset);
+
+    pitch_engine_.set_temperament(&setup.temperament);
+    pitch_engine_.set_scale_map(&setup.scaleMap);
+    pitch_engine_.set_root_hz(voiceRootHertz); // C4
+  }
 
   ///////////////////////////////////////////////////////////////////////////
   /// @brief
@@ -78,6 +93,16 @@ public:
   /// @brief
   /// @param nowMS
   virtual void update(uint32_t nowMS) {}
+
+  ///////////////////////////////////////////////////////////////////////////
+  /// @brief
+  /// @return
+  float get_base_frequency() const { return base_frequency_; }
+
+  ///////////////////////////////////////////////////////////////////////////
+  /// @brief
+  /// @param value
+  void set_base_frequency(float value) { base_frequency_ = value; }
 
   ///////////////////////////////////////////////////////////////////////////
   /// @brief
@@ -110,7 +135,22 @@ protected:
     return { sig * lCoeff, sig * rCoeff };
   }
 
+  ///////////////////////////////////////////////////////////////////////////
+  /// @brief
+  /// @param n
+  /// @param p
+  /// @param fc
+  /// @return
+  float get_frequency_for_note(music::Note n,
+                               music::Period p,
+                               float fc = 0.0f) const
+  {
+    return pitch_engine_.Frequency(music::TemperedPitch(n, p, fc));
+  }
+
 private:
+  MyPitchEngine pitch_engine_;
+  float base_frequency_;
   bool gate_;
   bool trigger_;
 };

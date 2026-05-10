@@ -47,9 +47,9 @@ struct SynthVoiceConfig : public BasicVoiceConfig
              2,
              false)
     , fltEnvelope(0.2f, 0.5f)
-    , ampLevel(0.0f,
+    , ampLevel(-1.0f,
                1.0f,
-               1.0f,
+               0.0f,
                daisy::MappedFloatValue::Mapping::lin,
                "",
                2,
@@ -68,17 +68,24 @@ struct SynthVoiceConfig : public BasicVoiceConfig
   ADSREnvelope ampEnvelope;
 };
 
-class SynthVoice : public BasicVoice<SynthVoiceConfig>
+template<std::size_t MAX_DEGREES = music::DEF_MAX_DEGREES,
+         std::size_t SCALE_DEGREES = music::DEF_SCALE_DEGREES,
+         typename VOICE_CONFIG = SynthVoiceConfig>
+class SynthVoice : public BasicVoice<MAX_DEGREES, SCALE_DEGREES, VOICE_CONFIG>
 {
+  using MySetup = music::Setup<MAX_DEGREES, SCALE_DEGREES>;
+  using MyBasicVoice = BasicVoice<MAX_DEGREES, SCALE_DEGREES, VOICE_CONFIG>;
+
 public:
   ///////////////////////////////////////////////////////////////////////////
   /// @brief
   /// @param sample_rate
-  void init(float sample_rate) override
+  void init(const MySetup& setup, int periodOffset, float sample_rate) override
   {
-    BasicVoice::init(sample_rate);
+    MyBasicVoice::init(setup, periodOffset, sample_rate);
 
     osc_.Init(sample_rate);
+    vib_.Init(sample_rate);
     nse_.Init();
     flt_.Init(sample_rate);
     fEnv_.Init(sample_rate);
@@ -90,21 +97,28 @@ public:
   /// @return
   std::tuple<float, float> process(bool trigger = false) override
   {
-    // Don't get anything from base class.
+    // Frequency & Vibrato
+    float vib_depth = 0.0F;
+    if (get_vibrato_on())
+      vib_depth = 0.01f; // ~50 cents pitch multipler
 
-    // float sigF = fEnv_.Process(GetGate());
-    // float sigA = aEnv_.Process(GetGate());
+    float vib_val = vib_.Process();
+    float freq =
+      MyBasicVoice::get_base_frequency() * (1.0f + (vib_val * vib_depth));
+    osc_.SetFreq(freq);
 
-    osc_.SetAmp(config_.ampLevel);
+    // Volume Processing
+    float sigA = aEnv_.Process(MyBasicVoice::get_gate());
+    osc_.SetAmp(sigA); // Take into consideration amp level
 
+    // Mix and Filter
     float oscSig = osc_.Process();
-    float nseSig = nse_.Process();
-    float nseRatio = config_.noiseLevel;
-
+    float nseSig = nse_.Process() * sigA;
+    float nseRatio = MyBasicVoice::config_.noiseLevel;
     flt_.Process((oscSig * (1.0 - nseRatio)) + (nseSig * nseRatio));
     float sig = flt_.Low();
 
-    return balance_signal(sig);
+    return MyBasicVoice::balance_signal(sig);
   }
 
   ///////////////////////////////////////////////////////////////////////////
@@ -112,41 +126,62 @@ public:
   /// @param nowMS
   void update(uint32_t nowMS) override
   {
-    BasicVoice::update(nowMS);
+    MyBasicVoice::update(nowMS);
 
-    osc_.SetWaveform(config_.waveForm);
+    osc_.SetWaveform(MyBasicVoice::config_.waveForm);
 
-    flt_.SetFreq(config_.fltFreq);
-    flt_.SetRes(config_.fltRes);
+    // Vibrato Configuration
+    vib_.SetWaveform(daisysp::Oscillator::WAVE_SIN);
+    vib_.SetFreq(5.0F); // Typical?
 
-    fEnv_.SetTime(daisysp::ADENV_SEG_ATTACK, config_.fltEnvelope.attack);
-    fEnv_.SetTime(daisysp::ADENV_SEG_DECAY, config_.fltEnvelope.decay);
+    flt_.SetFreq(MyBasicVoice::config_.fltFreq);
+    flt_.SetRes(MyBasicVoice::config_.fltRes);
+
+    fEnv_.SetTime(daisysp::ADENV_SEG_ATTACK,
+                  MyBasicVoice::config_.fltEnvelope.attack);
+    fEnv_.SetTime(daisysp::ADENV_SEG_DECAY,
+                  MyBasicVoice::config_.fltEnvelope.decay);
     // fEnv_.SetAttackTime(config_.fltEnvelope.attack);
     // fEnv_.SetDecayTime(config_.fltEnvelope.decay);
     // fEnv_.SetSustainLevel(config_.fltEnvelope.sustain);
     // fEnv_.SetReleaseTime(config_.fltEnvelope.release);
 
-    aEnv_.SetAttackTime(config_.ampEnvelope.attack);
-    aEnv_.SetDecayTime(config_.ampEnvelope.decay);
-    aEnv_.SetSustainLevel(config_.ampEnvelope.sustain);
-    aEnv_.SetReleaseTime(config_.ampEnvelope.release);
+    aEnv_.SetAttackTime(MyBasicVoice::config_.ampEnvelope.attack);
+    aEnv_.SetDecayTime(MyBasicVoice::config_.ampEnvelope.decay);
+    aEnv_.SetSustainLevel(MyBasicVoice::config_.ampEnvelope.sustain);
+    aEnv_.SetReleaseTime(MyBasicVoice::config_.ampEnvelope.release);
+  }
+
+  void handle_pulse(int pulse,
+                    const music::NoteEvent& note,
+                    bool gate,
+                    bool trigger)
+  {
+    set_vibrato_on(note.value > music::NoteValue::Eighth);
+
+    MyBasicVoice::set_base_frequency(
+      MyBasicVoice::get_frequency_for_note(note.note, note.period));
+    MyBasicVoice::set_gate(gate);
+    MyBasicVoice::set_trigger(trigger);
   }
 
   ///////////////////////////////////////////////////////////////////////////
   /// @brief
+  /// @return
+  bool get_vibrato_on() const { return vibrato_on_; }
+
+  ///////////////////////////////////////////////////////////////////////////
+  /// @brief
   /// @param value
-  void set_freq(float value)
-  {
-    freq_ = value;
-    osc_.SetFreq(freq_);
-  }
+  void set_vibrato_on(bool value) { vibrato_on_ = value; }
 
 private:
+  bool vibrato_on_{ false };
+
   daisysp::Oscillator osc_;
+  daisysp::Oscillator vib_;
   daisysp::WhiteNoise nse_;
   daisysp::Svf flt_;
   daisysp::AdEnv fEnv_;
   daisysp::Adsr aEnv_;
-
-  float freq_;
 };

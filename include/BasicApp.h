@@ -71,6 +71,8 @@ protected:
     , gnome(setup.timeSignature, setup.bars)
     , lastRefreshMS_(0UL)
   {
+    setup.temperament.attach_note_labels(music::NOTE_NAMES_12);
+    setup.temperament.attach_interval_labels(music::INTERVAL_NAMES_12);
   }
 
   virtual void internal_update(uint32_t nowMS)
