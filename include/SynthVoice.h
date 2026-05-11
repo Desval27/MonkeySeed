@@ -19,6 +19,29 @@ const char* WAVEFORM_LABELS[] = {
 
 struct SynthVoiceConfig : public BasicVoiceConfig
 {
+  daisy::MappedIntValue period;
+  daisy::MappedStringListValue waveForm;
+  daisy::MappedFloatValue noiseLevel;
+  daisy::MappedFloatValue fltFreq;
+  daisy::MappedFloatValue fltRes;
+  ADEnvelope fltEnvelope;
+  daisy::MappedFloatValue ampLevel;
+  ADSREnvelope ampEnvelope;
+
+  bool operator==(const SynthVoiceConfig& other) const
+  {
+    return BasicVoiceConfig::operator==(other) && other.period == period &&
+           other.waveForm == waveForm && other.noiseLevel == noiseLevel &&
+           other.fltFreq == fltFreq && other.fltRes == fltRes &&
+           other.fltEnvelope == fltEnvelope && other.ampLevel == ampLevel &&
+           other.ampEnvelope == ampEnvelope;
+  }
+
+  bool operator!=(const SynthVoiceConfig& other) const
+  {
+    return !(*this == other);
+  }
+
   SynthVoiceConfig()
     : BasicVoiceConfig()
     , period(music::MIN_PERIOD, music::MAX_PERIOD, 0, 1, 1, "", false)
@@ -57,15 +80,6 @@ struct SynthVoiceConfig : public BasicVoiceConfig
     , ampEnvelope(0.1f, 0.2f, 0.60f, 0.5f)
   {
   }
-
-  daisy::MappedIntValue period;
-  daisy::MappedStringListValue waveForm;
-  daisy::MappedFloatValue noiseLevel;
-  daisy::MappedFloatValue fltFreq;
-  daisy::MappedFloatValue fltRes;
-  ADEnvelope fltEnvelope;
-  daisy::MappedFloatValue ampLevel;
-  ADSREnvelope ampEnvelope;
 };
 
 template<std::size_t MAX_DEGREES = music::DEF_MAX_DEGREES,
@@ -97,7 +111,7 @@ public:
   /// @return
   std::tuple<float, float> process(bool trigger = false) override
   {
-    // Frequency & Vibrato
+    // get_frequency & Vibrato
     float vib_depth = 0.0F;
     if (get_vibrato_on())
       vib_depth = 0.01f; // ~50 cents pitch multipler

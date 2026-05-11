@@ -33,7 +33,7 @@ struct DrumVoiceConfig : public BasicVoiceConfig
   };
 };
 
-template<typename T,
+template<typename TEventType,
          std::size_t MAX_DEGREES = music::DEF_MAX_DEGREES,
          std::size_t SCALE_DEGREES = music::DEF_SCALE_DEGREES,
          typename VOICE_CONFIG = DrumVoiceConfig>
@@ -73,5 +73,5 @@ public:
   }
 
 public:
-  T t_;
+  TEventType t_;
 };

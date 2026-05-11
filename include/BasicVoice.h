@@ -12,6 +12,7 @@
 #pragma once
 
 #include <daisy.h>
+#include <daisy_helpers.h>
 #include <daisysp.h>
 
 #include <Envelopes.h>
@@ -23,6 +24,9 @@
 /// @brief
 struct BasicVoiceConfig
 {
+  daisy::MappedFloatValue volume;
+  daisy::MappedFloatValue balance;
+
   BasicVoiceConfig()
     : volume(0.0f,
              1.0f,
@@ -41,8 +45,15 @@ struct BasicVoiceConfig
   {
   }
 
-  daisy::MappedFloatValue volume;
-  daisy::MappedFloatValue balance;
+  bool operator==(const BasicVoiceConfig& other) const
+  {
+    return other.volume == volume && other.balance == balance;
+  }
+
+  bool operator!=(const BasicVoiceConfig& other) const
+  {
+    return !(*this == other);
+  }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -53,7 +64,7 @@ template<std::size_t MAX_DEGREES = music::DEF_MAX_DEGREES,
          typename VOICE_CONFIG = BasicVoiceConfig>
 class BasicVoice
 {
-  using MySetup = music::Setup<MAX_DEGREES, SCALE_DEGREES>;
+  using TSetup = music::Setup<MAX_DEGREES, SCALE_DEGREES>;
   using MyPitchEngine = music::PitchEngine<MAX_DEGREES, SCALE_DEGREES>;
 
 public:
@@ -71,13 +82,13 @@ public:
   ///////////////////////////////////////////////////////////////////////////
   /// @brief
   /// @param sample_rate
-  virtual void init(const MySetup& setup, int periodOffset, float sample_rate)
+  virtual void init(const TSetup& setup, int periodOffset, float sample_rate)
   {
     const float voiceRootHertz =
       music::C4FREQ * setup.temperament.period_multiplier(periodOffset);
 
     pitch_engine_.set_temperament(&setup.temperament);
-    pitch_engine_.set_scale_map(&setup.scaleMap);
+    pitch_engine_.set_scale_map(&setup.scale_map);
     pitch_engine_.set_root_hz(voiceRootHertz); // C4
   }
 
@@ -145,7 +156,7 @@ protected:
                                music::Period p,
                                float fc = 0.0f) const
   {
-    return pitch_engine_.Frequency(music::TemperedPitch(n, p, fc));
+    return pitch_engine_.get_frequency(music::TemperedPitch(n, p, fc));
   }
 
 private:

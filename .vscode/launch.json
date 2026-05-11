@@ -10,13 +10,13 @@
                 "target/stm32h7x.cfg"
             ],
             "name": "Cortex Debug",
-            "cwd": "${workspaceFolder}/TheMachine",
+            "cwd": "${workspaceFolder}/ChoirSATB",
             "debuggerArgs": [
                 "-d",
                 "${workspaceRoot}"
             ],
             "device": "STM32H755IB6",
-            "executable": "./build/TheMachine.elf",
+            "executable": "./build/ChoirSATB.elf",
             "interface": "swd",
             "preRestartCommands": [
                 "load",

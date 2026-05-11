@@ -17,19 +17,21 @@
 #include <music/event_set_manager.hpp>
 #include <music/gnome.hpp>
 
+#include <SynthVoice.h>
+
 template<std::size_t MAX_DEGREES = music::DEF_MAX_DEGREES,
          std::size_t SCALE_DEGREES = music::DEF_SCALE_DEGREES>
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief
 class BasicApp
 {
-  using MySetup = music::Setup<MAX_DEGREES, SCALE_DEGREES>;
+  using TSetup = music::Setup<MAX_DEGREES, SCALE_DEGREES>;
 
 private:
   const uint32_t COMPONENT_REFRESH_MS = 100;
 
 public:
-  MySetup setup;
+  TSetup setup;
   music::Gnome gnome;
 
   /////////////////////////////////////////////////////////////////////////////
@@ -68,7 +70,7 @@ protected:
             music::NoteValue::Quarter,
             music::TWELVE_TONE,
             music::OCTAVE_DOUBLE)
-    , gnome(setup.timeSignature, setup.bars)
+    , gnome(setup.time_signature, setup.bars)
     , lastRefreshMS_(0UL)
   {
     setup.temperament.attach_note_labels(music::NOTE_NAMES_12);
