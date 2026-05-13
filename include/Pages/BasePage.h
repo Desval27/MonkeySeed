@@ -44,7 +44,7 @@ public:
   /// @param canvasId
   void SetOneBitGraphicsDisplayToDrawTo(uint16_t canvasId)
   {
-    canvasIdToDrawTo_ = canvasId;
+    canvas_id_2draw2_ = canvasId;
   }
 
   // I really don't like having separate methods based on the control type since
@@ -217,7 +217,7 @@ protected:
   bool ValidateCanvas(const daisy::UiCanvasDescriptor& canvas) const
   {
     // Find out if this canvas is one we should draw to.
-    if (canvasIdToDrawTo_ == daisy::UI::invalidCanvasId) {
+    if (canvas_id_2draw2_ == daisy::UI::invalidCanvasId) {
       // We're configured to use the UIs default canvas.
       auto* ui = GetParentUI();
       if (!ui)
@@ -228,7 +228,7 @@ protected:
       if (ui->GetPrimaryOneBitGraphicsDisplayId() != canvas.id_)
         // This is not the default canvas! Don't draw here.
         return false;
-    } else if (canvasIdToDrawTo_ != canvas.id_)
+    } else if (canvas_id_2draw2_ != canvas.id_)
       // we're configured to draw to a specific canvas, but not this one.
       return false;
     return true;
@@ -242,5 +242,5 @@ protected:
                             uint32_t nowMS) = 0;
 
 private:
-  uint16_t canvasIdToDrawTo_ = daisy::UI::invalidCanvasId;
+  uint16_t canvas_id_2draw2_ = daisy::UI::invalidCanvasId;
 };

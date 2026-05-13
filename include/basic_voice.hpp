@@ -84,12 +84,12 @@ public:
   /// @param sample_rate
   virtual void init(const TSetup& setup, int periodOffset, float sample_rate)
   {
-    const float voiceRootHertz =
+    const float voice_root_hz =
       music::C4FREQ * setup.temperament.period_multiplier(periodOffset);
 
     pitch_engine_.set_temperament(&setup.temperament);
     pitch_engine_.set_scale_map(&setup.scale_map);
-    pitch_engine_.set_root_hz(voiceRootHertz); // C4
+    pitch_engine_.set_root_hz(voice_root_hz); // C4
   }
 
   ///////////////////////////////////////////////////////////////////////////
@@ -157,9 +157,9 @@ protected:
   /// @return
   std::tuple<float, float> balance_signal(float sig)
   {
-    const float rCoeff = (config_.balance.Get() + 1.0F) / 2.0F;
-    const float lCoeff = 1.0F - rCoeff;
-    return { sig * lCoeff, sig * rCoeff };
+    const float r_coeff = (config_.balance.Get() + 1.0F) / 2.0F;
+    const float l_coeff = 1.0F - r_coeff;
+    return { sig * r_coeff, sig * l_coeff };
   }
 
   ///////////////////////////////////////////////////////////////////////////

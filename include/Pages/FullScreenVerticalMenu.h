@@ -50,7 +50,7 @@ public:
   /// @param canvasId
   void SetOneBitGraphicsDisplayToDrawTo(uint16_t canvasId)
   {
-    canvasIdToDrawTo_ = canvasId;
+    canvas_id_2draw2_ = canvasId;
   }
 
   ///////////////////////////////////////////////////////////////////////////
@@ -80,66 +80,72 @@ protected:
     // Experimenting for now
     FontDef fd = GetFontDef(FONT_SIZE);
 
-    Rectangle baseRect(
+    Rectangle base_rect(
       display.GetBounds().WithHeight(fd.FontHeight + 2).WithTrimmedLeft(1));
 
-    int16_t charH = baseRect.GetHeight();
+    int16_t char_height = base_rect.GetHeight();
 
     const int16_t line = 0; // I don't remember what this was for...
-    const int16_t maxItems =
+    const int16_t max_items =
       std::min(static_cast<int16_t>(numItems_),
-               static_cast<int16_t>(display.Height() / charH - line));
+               static_cast<int16_t>(display.Height() / char_height - line));
 
-    int16_t startIdx;
-    if (centerScrolling_)
-      startIdx = std::max(
-        0, std::min(selectedItemIdx_ - (maxItems / 2), numItems_ - maxItems));
+    int16_t start_index;
+    if (center_scrolling_)
+      start_index = std::max(
+        0, std::min(selectedItemIdx_ - (max_items / 2), numItems_ - max_items));
     else
-      startIdx = selectedItemIdx_ >= maxItems
-                   ? std::max(0, selectedItemIdx_ - maxItems + 1)
-                   : 0;
+      start_index = selectedItemIdx_ >= max_items
+                      ? std::max(0, selectedItemIdx_ - max_items + 1)
+                      : 0;
 
-    int16_t yOfs = 0;
-    for (int16_t itemIdx = startIdx; itemIdx < (startIdx + maxItems);
-         itemIdx++, yOfs += charH) {
-      Rectangle itemRect = baseRect.Translated(0, yOfs);
-      bool isSelected = (itemIdx == selectedItemIdx_);
+    int16_t y_offset = 0;
+    for (int16_t item_index = start_index;
+         item_index < (start_index + max_items);
+         item_index++, y_offset += char_height) {
+      Rectangle item_rect = base_rect.Translated(0, y_offset);
 
-      FixedCapStr<20> itemText;
+      FixedCapStr<20> item_text;
+
+      bool is_selected = (item_index == selectedItemIdx_);
+      if (is_selected && isEditing_)
+        item_text.Append(">");
 
       // This is just a WIP.  For now
       // based on the item append some
       // sort of indicator text if possible
-      itemText.Append(items_[itemIdx].text);
+      item_text.Append(items_[item_index].text);
 
-      switch (items_[itemIdx].type) {
+      switch (items_[item_index].type) {
         // Mostly just being sort of cheap for now.
         case ItemType::checkboxItem:
-          if (*items_[itemIdx].asCheckboxItem.valueToModify)
-            itemText.Append("=YES");
+          if (*items_[item_index].asCheckboxItem.valueToModify)
+            item_text.Append("=YES");
           else
-            itemText.Append("=NO");
+            item_text.Append("=NO");
           break;
         case ItemType::openUiPageItem:
-          itemText.Append("...");
+          item_text.Append("...");
           break;
         case ItemType::closeMenuItem:
-          itemText.Append(" X");
+          item_text.Append(" X");
           break;
         case ItemType::valueItem:
-          itemText.Append(' ');
-          (*items_[itemIdx].asMappedValueItem.valueToModify)
-            .AppentToString(itemText);
+          item_text.Append(' ');
+          (*items_[item_index].asMappedValueItem.valueToModify)
+            .AppentToString(item_text);
           break;
         default:
         case ItemType::customItem:
         case ItemType::callbackFunctionItem:
           break;
       }
-      if (isSelected)
-        display.DrawRect(itemRect, true, true);
+      // Draw a inverse rectangle around the selected item.
+      if (is_selected)
+        display.DrawRect(item_rect, true, true);
+
       display.WriteStringAligned(
-        itemText.Cstr(), fd, itemRect, Alignment::centered, !isSelected);
+        item_text.Cstr(), fd, item_rect, Alignment::centered, !is_selected);
     }
   }
 
@@ -150,7 +156,7 @@ protected:
   bool ValidateCanvas(const daisy::UiCanvasDescriptor& canvas) const
   {
     // Find out if this canvas is one we should draw to.
-    if (canvasIdToDrawTo_ == daisy::UI::invalidCanvasId) {
+    if (canvas_id_2draw2_ == daisy::UI::invalidCanvasId) {
       // We're configured to use the UIs default canvas.
       auto* ui = GetParentUI();
       if (!ui)
@@ -161,7 +167,7 @@ protected:
       if (ui->GetPrimaryOneBitGraphicsDisplayId() != canvas.id_)
         // This is not the default canvas! Don't draw here.
         return false;
-    } else if (canvasIdToDrawTo_ != canvas.id_)
+    } else if (canvas_id_2draw2_ != canvas.id_)
       // we're configured to draw to a specific canvas, but not this one.
       return false;
     return true;
@@ -187,6 +193,6 @@ protected:
   }
 
 private:
-  uint16_t canvasIdToDrawTo_ = daisy::UI::invalidCanvasId;
-  bool centerScrolling_ = true;
+  uint16_t canvas_id_2draw2_ = daisy::UI::invalidCanvasId;
+  bool center_scrolling_ = true;
 };

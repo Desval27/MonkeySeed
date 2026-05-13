@@ -15,12 +15,19 @@
 #include <daisy_helpers.h>
 #include <daisysp.h>
 
+///////////////////////////////////////////////////////////////////////////////
+/// @brief
 struct ADEnvelope
 {
-  daisy::MappedFloatValue attack;
-  daisy::MappedFloatValue decay;
-  daisy::MappedFloatValue amount;
+  daisy::MappedFloatValue attack; ///<
+  daisy::MappedFloatValue decay;  ///<
+  daisy::MappedFloatValue amount; ///<
 
+  /////////////////////////////////////////////////////////////////////////////
+  /// @brief
+  /// @param defAttack
+  /// @param defDecay
+  /// @param defAmount
   ADEnvelope(float defAttack, float defDecay, float defAmount = 1.0f)
     : attack(0.0f,
              10.0f,
@@ -43,29 +50,48 @@ struct ADEnvelope
              "",
              2,
              false)
-
   {
   }
 
+  /////////////////////////////////////////////////////////////////////////////
+  /// @brief
+  /// @param other
+  /// @return
   bool operator==(const ADEnvelope& other) const
   {
     return other.attack == attack && other.decay == decay &&
            other.amount == amount;
   }
 
+  /////////////////////////////////////////////////////////////////////////////
+  /// @brief
+  /// @param other
+  /// @return
   bool operator!=(const ADEnvelope& other) const { return !(*this == other); }
 
+  /////////////////////////////////////////////////////////////////////////////
+  /// @brief
+  /// @param canvas
   void Draw(const daisy::UiCanvasDescriptor& canvas) {}
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// @brief
 struct ADSREnvelope
 {
-  daisy::MappedFloatValue attack;
-  daisy::MappedFloatValue decay;
-  daisy::MappedFloatValue sustain;
-  daisy::MappedFloatValue release;
-  daisy::MappedFloatValue amount;
+  daisy::MappedFloatValue attack;  ///<
+  daisy::MappedFloatValue decay;   ///<
+  daisy::MappedFloatValue sustain; ///<
+  daisy::MappedFloatValue release; ///<
+  daisy::MappedFloatValue amount;  ///<
 
+  /////////////////////////////////////////////////////////////////////////////
+  /// @brief
+  /// @param defAttack
+  /// @param defDecay
+  /// @param defSustain
+  /// @param defRelease
+  /// @param defAmount
   ADSREnvelope(float defAttack,
                float defDecay,
                float defSustain,
@@ -109,6 +135,10 @@ struct ADSREnvelope
   {
   }
 
+  /////////////////////////////////////////////////////////////////////////////
+  /// @brief
+  /// @param other
+  /// @return
   bool operator==(const ADSREnvelope& other) const
   {
     return other.attack == attack && other.decay == decay &&
@@ -116,7 +146,14 @@ struct ADSREnvelope
            other.amount == amount;
   }
 
+  /////////////////////////////////////////////////////////////////////////////
+  /// @brief
+  /// @param other
+  /// @return
   bool operator!=(const ADSREnvelope& other) const { return !(*this == other); }
 
+  /////////////////////////////////////////////////////////////////////////////
+  /// @brief
+  /// @param canvas
   void Draw(const daisy::UiCanvasDescriptor& canvas) {}
 };
