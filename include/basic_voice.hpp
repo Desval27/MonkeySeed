@@ -107,6 +107,22 @@ public:
 
   ///////////////////////////////////////////////////////////////////////////
   /// @brief
+  /// @param pulse
+  /// @param note
+  /// @param gate
+  /// @param trigger
+  virtual void handle_pulse(int pulse,
+                            const music::NoteEvent& note,
+                            bool gate,
+                            bool trigger)
+  {
+    set_base_frequency(get_frequency_for_note(note.note, note.period));
+    set_gate(gate);
+    set_trigger(trigger);
+  }
+
+  ///////////////////////////////////////////////////////////////////////////
+  /// @brief
   /// @return
   float get_base_frequency() const { return base_frequency_; }
 

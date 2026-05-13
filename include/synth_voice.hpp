@@ -166,17 +166,19 @@ public:
     aEnv_.SetReleaseTime(TBasicVoice::config_.ampEnvelope.release);
   }
 
+  ///////////////////////////////////////////////////////////////////////////
+  /// @brief
+  /// @param pulse
+  /// @param note
+  /// @param gate
+  /// @param trigger
   void handle_pulse(int pulse,
                     const music::NoteEvent& note,
                     bool gate,
-                    bool trigger)
+                    bool trigger) override
   {
+    TBasicVoice::handle_pulse(pulse, note, gate, trigger);
     set_vibrato_on(note.value > music::NoteValue::Eighth);
-
-    TBasicVoice::set_base_frequency(
-      TBasicVoice::get_frequency_for_note(note.note, note.period));
-    TBasicVoice::set_gate(gate);
-    TBasicVoice::set_trigger(trigger);
   }
 
   ///////////////////////////////////////////////////////////////////////////
